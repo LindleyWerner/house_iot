@@ -1,0 +1,17 @@
+#Startar server
+.manage.py runserver 192.168.1.5:8000
+
+#Websocket no android
+https://medium.com/@ssaurel/learn-to-use-websockets-on-android-with-okhttp-ba5f00aea988
+
+#Ctrl+Shift+j no browser
+
+socket = new WebSocket("ws://192.168.1.5:8000");
+socket.onmessage = function(e) {
+    alert(e.data);
+}
+socket.onopen = function() {
+    socket.send("hello world");
+}
+// Call onopen directly if socket is already open
+if (socket.readyState == WebSocket.OPEN) socket.onopen();
