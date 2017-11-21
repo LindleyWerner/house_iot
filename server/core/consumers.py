@@ -1,16 +1,10 @@
-"""def message_from_client(message):
-    message.reply_channel.send({
-            "text": message.content['text'],
-        })"""
+from core.actions import action
 
 
 def message_from_client(message):
-    try:
-        print("\nMensagem")
-        print(message.content['text'])
+    print("\nMessage: ", end="")
+    print(message.content['text'])
 
-        message.reply_channel.send({
-            "text": message.content['text'],
-        })
-    except:
-        print("ERRO")
+    message.reply_channel.send({
+        "text": action(message.content['text'])
+    })

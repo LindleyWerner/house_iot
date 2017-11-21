@@ -1,5 +1,5 @@
 #Startar server
-.manage.py runserver 192.168.1.5:8000
+./manage.py runserver 192.168.1.5:8000
 
 #Websocket no android
 https://medium.com/@ssaurel/learn-to-use-websockets-on-android-with-okhttp-ba5f00aea988
