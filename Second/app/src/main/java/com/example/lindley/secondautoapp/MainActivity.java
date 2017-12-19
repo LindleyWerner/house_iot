@@ -1,11 +1,11 @@
 package com.example.lindley.secondautoapp;
 
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -15,19 +15,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ImageButton;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     Server server;
+    Handler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,16 +32,21 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        ImageButton onoff = findViewById(R.id.onoff);
-        ImageButton favourites = findViewById(R.id.favourites);
+        //Doing this, I can use server and handler in another activities as a static object
+        handler = SocketHandler.getHandler();
+        server = SocketHandler.getServer();
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // TODO Open activity to create objects
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                //        .setAction("Action", null).show();
+                Intent intent = new Intent(MainActivity.this,
+                        NewSensor.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
             }
         });
 
@@ -58,23 +59,38 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        //Getting intent
+        Intent intent = getIntent();
 
-        server = openConnection();
 
+        for (int i = 0; ; i++) {
+            String name, port;
 
-        onoff.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onoff();
+            name = getIntent().getExtras().getString("name" + Integer.toString(i));
+            port = getIntent().getExtras().getString("port" + Integer.toString(i));
+
+            if(name == null || port == null){
+                break;
             }
-        });
 
-        favourites.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                favourites();
-            }
-        });
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(140, 123);
+
+            Button btn = new Button(this);
+            final int port_ = Integer.parseInt(port);
+            btn.setId(port_);
+            btn.setText(name);
+            btn.setBackgroundColor(Color.rgb(70, 80, 90));
+            LinearLayout ll = findViewById(R.id.layout);
+            ll.addView(btn, params);
+            Button btn1 = findViewById(port_);
+            btn1.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View view) {
+                    Toast.makeText(view.getContext(),
+                            "Button clicked index = " + port_, Toast.LENGTH_SHORT)
+                            .show();
+                }
+            });
+        }
     }
 
     @Override
@@ -90,7 +106,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        //getMenuInflater().inflate(R.menu.main, menu); //I deleted settings
         return true;
     }
 
@@ -101,12 +117,6 @@ public class MainActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            Toast.makeText(getApplicationContext(), "settings", Toast.LENGTH_SHORT).show();
-            return true;
-        }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -116,19 +126,20 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-            Toast.makeText(getApplicationContext(), "camera", Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
+        if (id == R.id.nav_new_sensor) {
+            //Toast.makeText(getApplicationContext(), "New sensor", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(MainActivity.this,
+                    NewSensor.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            //intent.putExtra("MESSENGER", (Serializable) handler);
+            startActivity(intent);
+        } else if (id == R.id.nav_settings) {
+            Intent intent = new Intent(MainActivity.this,
+                    Settings.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            startActivity(intent);
         } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+            Toast.makeText(getApplicationContext(), "Share", Toast.LENGTH_SHORT).show();
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -161,63 +172,5 @@ public class MainActivity extends AppCompatActivity
     protected void onStop(){//called when the activity is hidden, onCreate is called when return
         super.onStop();
         server.closeConnection();
-    }
-
-    Handler handler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-            switch(msg.what) {
-                case Constants.MESSAGE://show messages
-                    Toast.makeText(getApplicationContext(), msg.obj.toString(), Toast.LENGTH_SHORT).show();
-                    break;
-                case Constants.CLOSE_WEBSOCKET://Close websocket
-                    Toast.makeText(getApplicationContext(), msg.obj.toString(), Toast.LENGTH_SHORT).show();
-                    server.closeConnection();
-                    break;
-                case Constants.WEBSOCKET_FAILURE://Failure in websocket connection -> close it
-                    Toast.makeText(getApplicationContext(), msg.obj.toString(), Toast.LENGTH_SHORT).show();
-                    // TODO close connection and open it again
-                    break;
-            }
-            return true;
-        }
-    });
-
-    //Buttons functions/actions
-    private void onoff(){
-        // TODO Call another activity and show options
-        handler.obtainMessage(1, "On off").sendToTarget();
-        JSONObject obj = new JSONObject();
-        try {
-            obj.put("target", "on_off");
-            obj.put("action", "create");
-            obj.put("name", "Luz quarto");
-            obj.put("port", "1");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        server.sendMessage(obj);
-    }
-
-    private void favourites(){
-        handler.obtainMessage(1, "Favourites").sendToTarget();
-    }
-
-    private Server openConnection(){
-        OkHttpClient client = new OkHttpClient();
-
-        Request request = new Request.Builder()
-                .url("ws://192.168.1.2:8000") //change ws to wss
-                //.header("Auth-Token","secret-api-token-here") //wss
-                //https://stackoverflow.com/questions/46931663/using-secure-websockets-wss-with-okhttp
-                .build();
-        EchoWebSocketListener listener = new EchoWebSocketListener(handler);
-        //calls onOpen
-        client.newWebSocket(request, listener);
-
-        //Just to return 2 objects
-        Server newServer = new Server(client, listener);
-
-        return newServer;
     }
 }

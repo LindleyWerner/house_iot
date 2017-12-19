@@ -3,32 +3,35 @@ from core.codes import Code
 from core.models import OnOff
 from django.forms.models import model_to_dict
 from django.core import serializers
+
 import json
 
 
 def create(name="Light", port=None):
     if port is not None:
         try:
+            OnOff.objects.get(port=port)
+        except OnOff.DoesNotExist:
             entity = OnOff(name=name, port=port)
             entity.save()
             return model_to_dict(entity)
-        except:  # TODO What exception?
-            return {"error": Code.ERROR}
+        else:
+            return {"error": Code.ALREADY_EXIST}
     return {"error": Code.MISSING_PARAMETER}
 
 
 def read():
     try:
         data = serializers.serialize('json', OnOff.objects.all())
-        return json.loads(data)
+        return json.loads('{"sensors": ' + data + '}')
     except OnOff.DoesNotExist:
         return {"error": Code.NOT_FOUND}
 
 
-def update(id=None, name="Light", port=None):
-    if id is not None:
+def update(id_port=None, name="Light", port=None):
+    if id_port is not None:
         try:
-            entity = OnOff.objects.get(port=id)
+            entity = OnOff.objects.get(port=id_port)
             entity.name = name
             entity.port = port
             entity.save()
@@ -38,10 +41,10 @@ def update(id=None, name="Light", port=None):
     return {"error": Code.MISSING_PARAMETER}
 
 
-def delete(id=None):
-    if id is not None:
+def delete(id_port=None):
+    if id_port is not None:
         try:
-            entity = OnOff.objects.get(port=id)
+            entity = OnOff.objects.get(port=id_port)
             entity.delete()
             return Code.SUCCESS
         except OnOff.DoesNotExist:
@@ -49,29 +52,31 @@ def delete(id=None):
     return {"error": Code.MISSING_PARAMETER}
 
 
-def on(id=None, timer=0):
-    if id is not None:
+def on(id_port=None, timer=0):
+    if id_port is not None:
         try:
-            entity = OnOff.objects.get(port=id)
+            entity = OnOff.objects.get(port=id_port)
             entity.is_on = True
             entity.timer = timer
             entity.save()
             # TODO Turn on the light
-            return model_to_dict(OnOff.objects.get(port=id))
+            print("Light " + entity.name + " is on")
+            return model_to_dict(OnOff.objects.get(port=id_port))
         except OnOff.DoesNotExist:
             return {"error": Code.NOT_FOUND}
     return {"error": Code.MISSING_PARAMETER}
 
 
-def off(id=None):
-    if id is not None:
+def off(id_port=None):
+    if id_port is not None:
         try:
-            entity = OnOff.objects.get(port=id)
+            entity = OnOff.objects.get(port=id_port)
             entity.is_on = False
             entity.timer = 0
             entity.save()
             # TODO Turn off the light
-            return model_to_dict(OnOff.objects.get(port=id))
+            print("Light " + entity.name + " is off")
+            return model_to_dict(OnOff.objects.get(port=id_port))
         except OnOff.DoesNotExist:
             return {"error": Code.NOT_FOUND}
     return {"error": Code.MISSING_PARAMETER}

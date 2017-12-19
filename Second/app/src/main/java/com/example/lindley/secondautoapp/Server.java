@@ -1,14 +1,14 @@
 package com.example.lindley.secondautoapp;
 
 import org.json.JSONObject;
-
+import java.io.Serializable;
 import okhttp3.OkHttpClient;
 
 /**
  * Created by lindley on 06/12/17.
  */
 
-public class Server {
+public class Server implements Serializable {
     private OkHttpClient client;
     private EchoWebSocketListener listener;
 

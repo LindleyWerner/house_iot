@@ -5,3 +5,4 @@ class Code:
     ERROR = 4
     KEY_ERROR = 5
     NO_OPTION = 6
+    ALREADY_EXIST = 7

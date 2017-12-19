@@ -6,7 +6,6 @@ package com.example.lindley.secondautoapp;
 
 import android.os.Handler;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import okhttp3.Response;
@@ -26,17 +25,17 @@ public class EchoWebSocketListener extends WebSocketListener {
     @Override
     public void onOpen(WebSocket webSocket, Response response) {
         //webSocket.send("{Auth-Token:secret-api-token-here}"); //wss
-        handler.obtainMessage(Constants.MESSAGE, "Opening websocket connection").sendToTarget();
+        //handler.obtainMessage(Constants.MESSAGE, "Opening websocket connection").sendToTarget();
         this.webSocket = webSocket;
         // TODO What this response do?
     }
     @Override
     public void onMessage(WebSocket webSocket, String text) {
-        handler.obtainMessage(Constants.MESSAGE, "Receiving : " + text).sendToTarget();
+        handler.obtainMessage(Constants.MESSAGE, text).sendToTarget();
     }
     @Override
     public void onMessage(WebSocket webSocket, ByteString bytes) {
-        handler.obtainMessage(Constants.MESSAGE, "Receiving bytes : " + bytes.hex()).sendToTarget();
+        handler.obtainMessage(Constants.MESSAGE, bytes.hex()).sendToTarget();
     }
     @Override
     public void onClosing(WebSocket webSocket, int code, String reason) {
