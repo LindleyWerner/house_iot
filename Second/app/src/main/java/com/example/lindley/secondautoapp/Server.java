@@ -8,7 +8,7 @@ import okhttp3.OkHttpClient;
  * Created by lindley on 06/12/17.
  */
 
-public class Server implements Serializable {
+class Server implements Serializable {
     private OkHttpClient client;
     private EchoWebSocketListener listener;
 
@@ -17,11 +17,11 @@ public class Server implements Serializable {
         this.listener = listener;
     }
 
-    public void sendMessage(JSONObject msg){
+    void sendMessage(JSONObject msg){
         listener.sendMessage(msg);
     }
 
-    public void closeConnection(){
+    void closeConnection(){
         client.dispatcher().executorService().shutdown();
     }
 }

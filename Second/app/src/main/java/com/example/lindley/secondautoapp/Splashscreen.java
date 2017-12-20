@@ -29,6 +29,7 @@ public class Splashscreen extends Activity {
         Window window = getWindow();
         window.setFormat(PixelFormat.RGBA_8888);
     }
+
     /** Called when the activity is first created. */
     Thread splashTread;
     @Override
@@ -37,16 +38,17 @@ public class Splashscreen extends Activity {
         setContentView(R.layout.activity_splashscreen);
         StartAnimations();
     }
+
     private void StartAnimations() {
         Animation anim = AnimationUtils.loadAnimation(this, R.anim.alpha);
         anim.reset();
-        LinearLayout l=(LinearLayout) findViewById(R.id.lin_lay);
+        LinearLayout l= findViewById(R.id.lin_lay);
         l.clearAnimation();
         l.startAnimation(anim);
 
         anim = AnimationUtils.loadAnimation(this, R.anim.translate);
         anim.reset();
-        ImageView iv = (ImageView) findViewById(R.id.splash);
+        ImageView iv = findViewById(R.id.splash);
         iv.clearAnimation();
         iv.startAnimation(anim);
 
@@ -61,21 +63,9 @@ public class Splashscreen extends Activity {
                 sleep(3000);
 
                 getActiveSensors();
-
-                // Splash screen pause time
-                //sleep(2000);
-
-                /*Intent intent = new Intent(Splashscreen.this,
-                        MainActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                startActivity(intent);*/
             } catch (InterruptedException e) {
                 // do nothing
-            } finally {
-                //Splashscreen.this.finish();
-
             }
-
             }
         };
         splashTread.start();
@@ -88,7 +78,7 @@ public class Splashscreen extends Activity {
             switch(msg.what) {
                 case Constants.MESSAGE://show messages
                     //Transforming string to json
-                    JSONObject obj = null;
+                    JSONObject obj;
                     try {
                         obj = new JSONObject(msg.obj.toString());
                         //Taking the first key (define from where the message came)
@@ -101,21 +91,26 @@ public class Splashscreen extends Activity {
                                             MainActivity.class);
 
                                     array = obj.getJSONArray("sensors");
-                                    //Iterating through all sensors
-                                    for(int i=0; i<array.length(); i++){
-                                        //Taking information
-                                        obj = new JSONObject(array.get(i).toString());
-                                        String port = obj.getString("pk");
-                                        obj = obj.getJSONObject("fields");
-                                        String name = obj.getString("name");
 
-                                        intent.putExtra("name" + Integer.toString(i), name);
-                                        intent.putExtra("port" + Integer.toString(i), port);
+                                    //if the server send any sensor, take their information
+                                    if(array.length()!=0) {
+                                        //Iterating through all sensors
+                                        for(int i=0; i<array.length(); i++){
+                                            //Taking information
+                                            obj = new JSONObject(array.get(i).toString());
+                                            String port = obj.getString("pk");
+                                            obj = obj.getJSONObject("fields");
+                                            String name = obj.getString("name");
+
+                                            intent.putExtra("name" + Integer.toString(i), name);
+                                            intent.putExtra("port" + Integer.toString(i), port);
+                                        }
                                     }
                                     //Call another activity and clear the activity stack
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION|Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK |Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                     startActivity(intent);
                                     Splashscreen.this.finish();
+
                                     break;
                             }
                         } catch (JSONException e) {
@@ -134,7 +129,10 @@ public class Splashscreen extends Activity {
                     Toast.makeText(getApplicationContext(), msg.obj.toString(), Toast.LENGTH_SHORT).show();
                     // TODO close connection and open it again (is it ok?)
                     server.closeConnection();
-                    startServerConnection();
+                    //startServerConnection();
+                    break;
+                case Constants.STRING:
+                    Toast.makeText(getApplicationContext(), msg.obj.toString(), Toast.LENGTH_SHORT).show();
                     break;
             }
             return true;

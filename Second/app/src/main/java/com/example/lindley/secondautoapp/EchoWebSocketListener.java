@@ -40,14 +40,14 @@ public class EchoWebSocketListener extends WebSocketListener {
     @Override
     public void onClosing(WebSocket webSocket, int code, String reason) {
         webSocket.close(NORMAL_CLOSURE_STATUS, null);
-        handler.obtainMessage(Constants.CLOSE_WEBSOCKET, "Closing : " + code + " / " + reason).sendToTarget();
+        handler.obtainMessage(Constants.CLOSE_WEBSOCKET, "Closing: " + code + " / " + reason).sendToTarget();
     }
     @Override
     public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-        handler.obtainMessage(Constants.WEBSOCKET_FAILURE, "Error : " + t.getMessage()).sendToTarget();
+        handler.obtainMessage(Constants.WEBSOCKET_FAILURE, "Error: " + t.getMessage()).sendToTarget();
     }
 
-    public void sendMessage(JSONObject obj){
+    void sendMessage(JSONObject obj){
         webSocket.send(obj.toString());
     }
 }

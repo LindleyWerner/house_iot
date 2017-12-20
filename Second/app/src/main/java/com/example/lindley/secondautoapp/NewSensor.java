@@ -66,10 +66,10 @@ public class NewSensor extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }else{
-                Toast.makeText(getApplicationContext(), Constants.empty_port, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), R.string.empty_port, Toast.LENGTH_SHORT).show();
             }
         }else{
-            Toast.makeText(getApplicationContext(), Constants.empty_name, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), R.string.empty_name, Toast.LENGTH_SHORT).show();
         }
     }
 

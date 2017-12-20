@@ -20,4 +20,8 @@
     <string name="name">Name</string>
     <string name="sensorPort">Port</string>
     <string name="create">Create</string>
+
+    <string name="trash">Trash</string>
+    <string name="empty_name">You must write a name</string>
+    <string name="empty_port">You must write a port</string>
 </resources>

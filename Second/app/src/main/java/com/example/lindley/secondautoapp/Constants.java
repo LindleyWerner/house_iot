@@ -8,7 +8,6 @@ public interface Constants {
     int MESSAGE = 1;
     int CLOSE_WEBSOCKET = 2;
     int WEBSOCKET_FAILURE = 3;
-
-    String empty_name = "You must write a name";
-    String empty_port = "You must write a port";
+    int STRING = 4;
+    int START_RANGE = 1000;
 }

@@ -1,11 +1,15 @@
 package com.example.lindley.secondautoapp;
 
+import android.annotation.SuppressLint;
+import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.view.DragEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -17,6 +21,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity
@@ -36,19 +41,7 @@ public class MainActivity extends AppCompatActivity
         handler = SocketHandler.getHandler();
         server = SocketHandler.getServer();
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // TODO Open activity to create objects
-                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                //        .setAction("Action", null).show();
-                Intent intent = new Intent(MainActivity.this,
-                        NewSensor.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                startActivity(intent);
-            }
-        });
+        add_fab_button();
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -59,37 +52,10 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        //Getting intent
-        Intent intent = getIntent();
-
-
-        for (int i = 0; ; i++) {
-            String name, port;
-
-            name = getIntent().getExtras().getString("name" + Integer.toString(i));
-            port = getIntent().getExtras().getString("port" + Integer.toString(i));
-
-            if(name == null || port == null){
-                break;
-            }
-
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(140, 123);
-
-            Button btn = new Button(this);
-            final int port_ = Integer.parseInt(port);
-            btn.setId(port_);
-            btn.setText(name);
-            btn.setBackgroundColor(Color.rgb(70, 80, 90));
-            LinearLayout ll = findViewById(R.id.layout);
-            ll.addView(btn, params);
-            Button btn1 = findViewById(port_);
-            btn1.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View view) {
-                    Toast.makeText(view.getContext(),
-                            "Button clicked index = " + port_, Toast.LENGTH_SHORT)
-                            .show();
-                }
-            });
+        if(getIntent().getExtras() != null) {
+            add_buttons();
+        }else{
+            //TODO if there is no button, show something
         }
     }
 
@@ -115,7 +81,8 @@ public class MainActivity extends AppCompatActivity
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+
+        //int id = item.getItemId();
 
         return super.onOptionsItemSelected(item);
     }
@@ -127,11 +94,9 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_new_sensor) {
-            //Toast.makeText(getApplicationContext(), "New sensor", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(MainActivity.this,
                     NewSensor.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            //intent.putExtra("MESSENGER", (Serializable) handler);
             startActivity(intent);
         } else if (id == R.id.nav_settings) {
             Intent intent = new Intent(MainActivity.this,
@@ -147,19 +112,6 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    /*
-    //TODO How to properly turn the screen? (Fragments)
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        try {
-            savedInstanceState.putAll(savedInstanceState);
-        }catch (Exception e){
-            Toast.makeText(this, "Erro ao girar tela", Toast.LENGTH_SHORT).show();
-        }
-        // Always call the superclass so it can save the view hierarchy state
-        super.onSaveInstanceState(savedInstanceState);
-    }*/
-
     @Override
     protected void onDestroy(){
         //Close everything here
@@ -173,4 +125,141 @@ public class MainActivity extends AppCompatActivity
         super.onStop();
         server.closeConnection();
     }
+
+    private void add_fab_button(){
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                //        .setAction("Action", null).show();
+                Intent intent = new Intent(MainActivity.this,
+                        NewSensor.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+            }
+        });
+    }
+
+    private void add_buttons(){
+        RelativeLayout rl = findViewById(R.id.layout);
+        LinearLayout line = null;
+
+        for (int i = 0; ; i++) {
+            String name, port;
+
+            name = getIntent().getExtras().getString("name" + Integer.toString(i));
+            port = getIntent().getExtras().getString("port" + Integer.toString(i));
+
+            if(name == null || port == null){
+                break;
+            }
+
+            //Create a linearLayout to be a line
+            if(i%2==0) {
+                line = new LinearLayout(this);
+
+                line.setOrientation(LinearLayout.HORIZONTAL);
+                // The START_RANGE shift is to avoid give the same IDs to buttons and layouts
+                line.setId((i/2)+Constants.START_RANGE);
+
+                RelativeLayout.LayoutParams parent_param = new RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.MATCH_PARENT,
+                        RelativeLayout.LayoutParams.WRAP_CONTENT);
+
+                if(i>1) {
+                    int previous_line_id = (i/2) - 1 + Constants.START_RANGE;
+                    parent_param.addRule(RelativeLayout.BELOW, previous_line_id);
+                }
+                rl.addView(line, parent_param);
+            }
+
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT, 0.5f);
+
+            final int port_ = Integer.parseInt(port);
+            Button btn = new Button(this);
+            btn.setId(port_);
+            btn.setText(name);
+            btn.setBackgroundColor(Color.rgb(70, 80, 90));
+
+            //Setting button parameters
+            params.setMargins(20,20,20,0);
+
+            line.addView(btn, params);
+
+            final Button btn1 = findViewById(port_);
+            btn1.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View view) {
+                    Toast.makeText(view.getContext(),
+                            "Button clicked index = " + port_, Toast.LENGTH_SHORT)
+                            .show();
+                }
+            });
+
+            btn1.setOnLongClickListener(new View.OnLongClickListener(){
+                @SuppressLint("ClickableViewAccessibility")
+                @Override
+                public boolean onLongClick(View v) {
+                    //Draw the shadow
+                    ClipData data = ClipData.newPlainText("","");
+                    View.DragShadowBuilder myShadowBuilder = new View.DragShadowBuilder(v);
+                    v.startDrag(data, myShadowBuilder, v, 0);
+
+                    //show the trash button
+                    show_trash_button();
+
+                    return true;
+                }
+            });
+
+            //Actions when button is dragged
+            btn1.setOnDragListener(dragListener);
+        }
+    }
+
+    private void show_trash_button(){
+        final FloatingActionButton trash = findViewById(R.id.trash);
+
+        trash.setVisibility(View.VISIBLE);
+        trash.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                trash.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    View.OnDragListener dragListener = new View.OnDragListener() {
+        @Override
+        public boolean onDrag(View v, DragEvent event) {
+            int dragEvent = event.getAction();
+
+            if(dragEvent == DragEvent.ACTION_DRAG_ENDED){
+                FloatingActionButton trash = findViewById(R.id.trash);
+                trash.setVisibility(View.GONE);
+                //TODO send a message to server delete the sensor and call the main activity again
+            }
+
+            /*switch (dragEvent){
+                case DragEvent.ACTION_DRAG_ENDED:
+                    handler.obtainMessage(Constants.STRING, "ended").sendToTarget();
+                    break;
+                case DragEvent.ACTION_DRAG_EXITED:
+                    handler.obtainMessage(Constants.STRING, "exited").sendToTarget();
+                    break;
+                case DragEvent.ACTION_DRAG_ENTERED:
+                    handler.obtainMessage(Constants.STRING, "entered").sendToTarget();
+                    break;
+                case DragEvent.ACTION_DROP:
+                    handler.obtainMessage(Constants.STRING, "drop").sendToTarget();
+                    break;
+                case DragEvent.ACTION_DRAG_STARTED:
+                    handler.obtainMessage(Constants.STRING, "started").sendToTarget();
+                    break;
+            }*/
+            return false;
+        }
+    };
 }

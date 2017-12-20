@@ -12,15 +12,15 @@ import okhttp3.Request;
  * Created by lindley on 12/12/17.
  */
 
-public class Connection{
-    Handler handler;
-    Context context;
+class Connection{
+    private Handler handler;
+    private Context context;
     Connection(Handler handler, Context context){
         this.handler = handler;
         this.context = context;
     }
 
-    public Server openConnection(){
+    Server openConnection(){
         OkHttpClient client = new OkHttpClient();
 
         //get values from preferences
@@ -51,8 +51,6 @@ public class Connection{
         client.newWebSocket(request, listener);
 
         //Just to return 2 objects
-        Server newServer = new Server(client, listener);
-
-        return newServer;
+        return new Server(client, listener);
     }
 }
