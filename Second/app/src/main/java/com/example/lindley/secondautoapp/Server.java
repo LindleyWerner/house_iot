@@ -18,7 +18,7 @@ class Server implements Serializable {
     }
 
     void sendMessage(JSONObject msg){
-        listener.sendMessage(msg);
+            listener.sendMessage(msg);
     }
 
     void closeConnection(){

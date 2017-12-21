@@ -48,6 +48,10 @@ public class EchoWebSocketListener extends WebSocketListener {
     }
 
     void sendMessage(JSONObject obj){
-        webSocket.send(obj.toString());
+        if(webSocket != null) {
+            webSocket.send(obj.toString());
+        }else{
+            SocketHandler.setIsConnected(false);
+        }
     }
 }

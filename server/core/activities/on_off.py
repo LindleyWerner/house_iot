@@ -46,7 +46,7 @@ def delete(id_port=None):
         try:
             entity = OnOff.objects.get(port=id_port)
             entity.delete()
-            return Code.SUCCESS
+            return read()
         except OnOff.DoesNotExist:
             return {"error": Code.NOT_FOUND}
     return {"error": Code.MISSING_PARAMETER}

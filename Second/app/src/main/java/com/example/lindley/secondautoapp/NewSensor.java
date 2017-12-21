@@ -54,6 +54,7 @@ public class NewSensor extends AppCompatActivity {
                     obj.put("port", sensorPort);
 
                     server.sendMessage(obj);
+
                     //Back to previous activity
                     //onBackPressed();
                     // TODO think a better way to wait server response

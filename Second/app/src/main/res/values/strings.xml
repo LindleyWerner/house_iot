@@ -24,4 +24,7 @@
     <string name="trash">Trash</string>
     <string name="empty_name">You must write a name</string>
     <string name="empty_port">You must write a port</string>
+    <string name="add_sensor_button">Add sensor button</string>
+    <string name="connect_server_button">Connect server button</string>
+    <string name="app_disconnected">App is not connected, verify the network</string>
 </resources>

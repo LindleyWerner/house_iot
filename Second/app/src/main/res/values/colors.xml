@@ -4,4 +4,7 @@
     <color name="colorPrimaryDark">#303f9f</color>
     <color name="colorAccent">#FF4081</color>
     <color name="bg_splash_color">#00CD66</color>
+    <color name="bg_toolbar_color_disconnected">#b31a1f</color>
+    <color name="normal_trash_color">#0241a3</color>
+    <color name="clicked_trash_color">#0241FF</color>
 </resources>

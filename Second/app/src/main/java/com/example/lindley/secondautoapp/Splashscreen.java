@@ -23,6 +23,7 @@ import org.json.JSONObject;
 
 public class Splashscreen extends Activity {
     Server server;
+    boolean is_splash_screen_time = true;
 
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -30,8 +31,11 @@ public class Splashscreen extends Activity {
         window.setFormat(PixelFormat.RGBA_8888);
     }
 
-    /** Called when the activity is first created. */
+    /**
+     * Called when the activity is first created.
+     */
     Thread splashTread;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,7 +46,7 @@ public class Splashscreen extends Activity {
     private void StartAnimations() {
         Animation anim = AnimationUtils.loadAnimation(this, R.anim.alpha);
         anim.reset();
-        LinearLayout l= findViewById(R.id.lin_lay);
+        LinearLayout l = findViewById(R.id.lin_lay);
         l.clearAnimation();
         l.startAnimation(anim);
 
@@ -55,27 +59,44 @@ public class Splashscreen extends Activity {
         splashTread = new Thread() {
             @Override
             public void run() {
-            try {
-                startServerConnection();
-                SocketHandler.setHandler(handler);
+                try {
+                    SocketHandler.setHandler(handler);
+                    is_splash_screen_time = true;
+                    for(int i=0; i<Constants.TIMES_TO_TRY_CONNECT_TO_SERVER; i++) {
+                        startServerConnection();
 
-                // Splash screen pause time
-                sleep(3000);
+                        if(i==0) {
+                            // Splash screen pause time
+                            sleep(Constants.TIME_SPLASH_SCREEN);
+                        }
+                        getActiveSensors();
 
-                getActiveSensors();
-            } catch (InterruptedException e) {
-                // do nothing
-            }
+                        if(SocketHandler.getIsConnected()) {
+                            break;
+                        }else{
+                            //if reach this part is because couldn't connect to server
+                            //wait some time before try connect another time
+                            sleep(Constants.TIME_WAIT_ON_TRY_ANOTHER_SERVER_CONNECTION);
+                        }
+                    }
+                    is_splash_screen_time = false;
+                    if(!SocketHandler.getIsConnected()) {
+                        //Call Main activity and clear the activity stack
+                        //if reach this part is because couldn't connect to server
+                        call_main_activity();
+                    }
+                } catch (InterruptedException e) {
+                    // do nothing
+                }
             }
         };
         splashTread.start();
-
     }
 
     Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
-            switch(msg.what) {
+            switch (msg.what) {
                 case Constants.MESSAGE://show messages
                     //Transforming string to json
                     JSONObject obj;
@@ -84,7 +105,7 @@ public class Splashscreen extends Activity {
                         //Taking the first key (define from where the message came)
                         String key = obj.keys().next();
                         try {
-                            switch (key){
+                            switch (key) {
                                 case "sensors":
                                     JSONArray array;
                                     Intent intent = new Intent(Splashscreen.this,
@@ -93,9 +114,9 @@ public class Splashscreen extends Activity {
                                     array = obj.getJSONArray("sensors");
 
                                     //if the server send any sensor, take their information
-                                    if(array.length()!=0) {
+                                    if (array.length() != 0) {
                                         //Iterating through all sensors
-                                        for(int i=0; i<array.length(); i++){
+                                        for (int i = 0; i < array.length(); i++) {
                                             //Taking information
                                             obj = new JSONObject(array.get(i).toString());
                                             String port = obj.getString("pk");
@@ -107,7 +128,7 @@ public class Splashscreen extends Activity {
                                         }
                                     }
                                     //Call another activity and clear the activity stack
-                                    intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION|Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK |Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                     startActivity(intent);
                                     Splashscreen.this.finish();
 
@@ -124,12 +145,19 @@ public class Splashscreen extends Activity {
                 case Constants.CLOSE_WEBSOCKET://Close websocket
                     Toast.makeText(getApplicationContext(), msg.obj.toString(), Toast.LENGTH_SHORT).show();
                     server.closeConnection();
+
+                    SocketHandler.setIsConnected(false);
                     break;
                 case Constants.WEBSOCKET_FAILURE://Failure in websocket connection -> close it
-                    Toast.makeText(getApplicationContext(), msg.obj.toString(), Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getApplicationContext(), msg.obj.toString(), Toast.LENGTH_SHORT).show();
                     // TODO close connection and open it again (is it ok?)
                     server.closeConnection();
+
+                    SocketHandler.setIsConnected(false);
                     //startServerConnection();
+                    if(!is_splash_screen_time) {
+                        call_main_activity();
+                    }
                     break;
                 case Constants.STRING:
                     Toast.makeText(getApplicationContext(), msg.obj.toString(), Toast.LENGTH_SHORT).show();
@@ -139,21 +167,32 @@ public class Splashscreen extends Activity {
         }
     });
 
-    private void startServerConnection(){
+    private void startServerConnection() {
         Connection conn = new Connection(handler, this);
         server = conn.openConnection();
         SocketHandler.setSocket(server);
+        SocketHandler.setIsConnected(true);
     }
 
-    private void getActiveSensors(){
+    private void getActiveSensors() {
         JSONObject obj = new JSONObject();
         try {
             obj.put("target", "on_off");
             obj.put("action", "read");
 
+
             server.sendMessage(obj);
+
         } catch (JSONException e) {
             handler.obtainMessage(Constants.MESSAGE, e.toString()).sendToTarget();
         }
+    }
+
+    private void call_main_activity(){
+        Intent intent = new Intent(Splashscreen.this,
+                MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        Splashscreen.this.finish();
     }
 }

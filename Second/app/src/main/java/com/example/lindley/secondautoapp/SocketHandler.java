@@ -27,4 +27,15 @@ class SocketHandler {
     static synchronized void setHandler(Handler handler){
         SocketHandler.handler = handler;
     }
+
+
+    private static boolean connected = false;
+
+    static synchronized boolean getIsConnected(){
+        return connected;
+    }
+
+    static synchronized void setIsConnected(boolean connected){
+        SocketHandler.connected = connected;
+    }
 }
