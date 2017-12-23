@@ -11,8 +11,6 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static java.lang.Thread.sleep;
-
 public class NewSensor extends AppCompatActivity {
     private EditText name, port;
     private Handler handler;
@@ -32,6 +30,11 @@ public class NewSensor extends AppCompatActivity {
         //Getting server
         server = SocketHandler.getServer();
 
+        if (getIntent().getExtras() != null) {
+            set_values();
+            create.setText(R.string.update);
+        }
+
         create.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -48,23 +51,19 @@ public class NewSensor extends AppCompatActivity {
             if(sensorPort.length() > 0){
                 JSONObject obj = new JSONObject();
                 try {
+                    if (getIntent().getExtras() != null) {
+                        obj.put("action", "update");
+                        obj.put("id", getIntent().getExtras().getString("id"));
+                    }else{
+                        obj.put("action", "create");
+                    }
                     obj.put("target", "on_off");
-                    obj.put("action", "create");
                     obj.put("name", sensorName);
                     obj.put("port", sensorPort);
 
                     server.sendMessage(obj);
-
-                    //Back to previous activity
-                    //onBackPressed();
-                    // TODO think a better way to wait server response
-                    sleep(500);
-                    getActiveSensors();
-                    this.finish();
                 } catch (JSONException e) {
                     handler.obtainMessage(Constants.MESSAGE, e.toString()).sendToTarget();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
             }else{
                 Toast.makeText(getApplicationContext(), R.string.empty_port, Toast.LENGTH_SHORT).show();
@@ -74,15 +73,11 @@ public class NewSensor extends AppCompatActivity {
         }
     }
 
-    private void getActiveSensors(){
-        JSONObject obj = new JSONObject();
-        try {
-            obj.put("target", "on_off");
-            obj.put("action", "read");
+    private void set_values(){
+        String name_sensor = getIntent().getExtras().getString("name");
+        String id_sensor = getIntent().getExtras().getString("id");
 
-            server.sendMessage(obj);
-        } catch (JSONException e) {
-            handler.obtainMessage(Constants.MESSAGE, e.toString()).sendToTarget();
-        }
+        name.setText(name_sensor);
+        port.setText(id_sensor);
     }
 }

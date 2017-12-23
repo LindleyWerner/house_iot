@@ -3,7 +3,6 @@ package com.example.lindley.secondautoapp;
 import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -44,21 +43,21 @@ public class MainActivity extends AppCompatActivity
         handler = SocketHandler.getHandler();
         server = SocketHandler.getServer();
 
-        FloatingActionButton fab = findViewById(R.id.fab);
+        FloatingActionButton add = findViewById(R.id.add_fab);
 
         if(SocketHandler.getIsConnected()){
             if (getIntent().getExtras() != null) {
                 add_buttons();
-                add_fab_button();
+                add_button();
             } else {
                 show_add_sensor_button();
 
-                fab.setVisibility(View.GONE);
+                add.setVisibility(View.GONE);
             }
         }else {
             toolbar.setBackgroundColor(getResources().getColor(R.color.bg_toolbar_color_disconnected));
             show_connect_button();
-            fab.setVisibility(View.GONE);
+            add.setVisibility(View.GONE);
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -132,22 +131,19 @@ public class MainActivity extends AppCompatActivity
     protected void onDestroy(){
         //Close everything here
         super.onDestroy();
-
         server.closeConnection();
-
         handler.removeCallbacksAndMessages(null);
     }
 
     @Override
     protected void onStop(){//called when the activity is hidden, onCreate is called when return
         super.onStop();
-
         server.closeConnection();
     }
 
-    private void add_fab_button(){
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+    private void add_button(){
+        FloatingActionButton add = findViewById(R.id.add_fab);
+        add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
@@ -169,6 +165,7 @@ public class MainActivity extends AppCompatActivity
 
             name = getIntent().getExtras().getString("name" + Integer.toString(i));
             port = getIntent().getExtras().getString("port" + Integer.toString(i));
+            final Boolean is_on = getIntent().getExtras().getBoolean("is_on" + Integer.toString(i));
 
             if(name == null || port == null){
                 break;
@@ -201,7 +198,13 @@ public class MainActivity extends AppCompatActivity
             Button btn = new Button(this);
             btn.setId(port_);
             btn.setText(name);
-            btn.setBackgroundColor(Color.rgb(70, 80, 90));
+            if(is_on){
+                btn.setBackgroundColor(Color.rgb(204, 204, 0));
+                btn.setTag(true);
+            }else {
+                btn.setBackgroundColor(Color.rgb(70, 80, 90));
+                btn.setTag(false);
+            }
 
             //Setting button parameters
             params.setMargins(20,20,20,0);
@@ -211,9 +214,11 @@ public class MainActivity extends AppCompatActivity
             final Button btn1 = findViewById(port_);
             btn1.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View view) {
-                    Toast.makeText(view.getContext(),
-                            "Button clicked index = " + port_, Toast.LENGTH_SHORT)
-                            .show();
+                    if(is_on){
+                        turn_off(port_);
+                    }else{
+                        turn_on(port_);
+                    }
                 }
             });
 
@@ -225,9 +230,9 @@ public class MainActivity extends AppCompatActivity
                     View.DragShadowBuilder myShadowBuilder = new View.DragShadowBuilder(v);
                     v.startDrag(data, myShadowBuilder, v, 0);
 
-                    //show the trash button
+                    //show the additional buttons
                     show_trash_button();
-
+                    show_update_button();
                     return true;
                 }
             });
@@ -241,12 +246,6 @@ public class MainActivity extends AppCompatActivity
         final FloatingActionButton trash = findViewById(R.id.trash);
 
         trash.setVisibility(View.VISIBLE);
-        trash.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                trash.setVisibility(View.GONE);
-            }
-        });
 
         trash.setOnDragListener(new View.OnDragListener() {
             @Override
@@ -258,13 +257,44 @@ public class MainActivity extends AppCompatActivity
                         delete_sensor(button.getId());
                         break;
                     case DragEvent.ACTION_DRAG_ENTERED:
-                        //TODO how can I change the color or highlight button?
-                        trash.setBackgroundColor(getResources().getColor(R.color.colorAccent));
-                        //handler.obtainMessage(Constants.STRING, "entered").sendToTarget();
+                        trash.setBackgroundTintList(getResources().getColorStateList(R.color.colorAccent));
                         break;
                     case DragEvent.ACTION_DRAG_EXITED:
-                        trash.setBackgroundColor(getResources().getColor(R.color.normal_trash_color));
-                        //handler.obtainMessage(Constants.STRING, "leaved").sendToTarget();
+                        trash.setBackgroundTintList(getResources().getColorStateList(R.color.normal_trash_color));
+                        break;
+                }
+                return true;
+            }
+        });
+    }
+
+    private void show_update_button(){
+        final FloatingActionButton update = findViewById(R.id.update);
+
+        update.setVisibility(View.VISIBLE);
+
+        update.setOnDragListener(new View.OnDragListener() {
+            @Override
+            public boolean onDrag(View v, DragEvent event) {
+                int dragEvent = event.getAction();
+                final View button = (View) event.getLocalState();
+
+                switch (dragEvent) {
+                    case DragEvent.ACTION_DROP:
+                        int id_button = button.getId();
+                        Button b = findViewById(id_button);
+                        Intent intent = new Intent(MainActivity.this,
+                                NewSensor.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                        intent.putExtra("name", b.getText());
+                        intent.putExtra("id", Integer.toString(id_button));
+                        startActivity(intent);
+                        break;
+                    case DragEvent.ACTION_DRAG_ENTERED:
+                        update.setBackgroundTintList(getResources().getColorStateList(R.color.colorAccent));
+                        break;
+                    case DragEvent.ACTION_DRAG_EXITED:
+                        update.setBackgroundTintList(getResources().getColorStateList(R.color.normal_trash_color));
                         break;
                 }
                 return true;
@@ -280,6 +310,9 @@ public class MainActivity extends AppCompatActivity
             if(dragEvent == DragEvent.ACTION_DRAG_ENDED){
                 FloatingActionButton trash = findViewById(R.id.trash);
                 trash.setVisibility(View.GONE);
+
+                FloatingActionButton update = findViewById(R.id.update);
+                update.setVisibility(View.GONE);
             }
             return false;
         }
@@ -325,6 +358,34 @@ public class MainActivity extends AppCompatActivity
         try {
             obj.put("target", "on_off");
             obj.put("action", "delete");
+            obj.put("id", sensor_id);
+
+            server.sendMessage(obj);
+
+        } catch (JSONException e) {
+            handler.obtainMessage(Constants.MESSAGE, e.toString()).sendToTarget();
+        }
+    }
+
+    private void turn_on(int sensor_id){
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("target", "on_off");
+            obj.put("action", "on");
+            obj.put("id", sensor_id);
+
+            server.sendMessage(obj);
+
+        } catch (JSONException e) {
+            handler.obtainMessage(Constants.MESSAGE, e.toString()).sendToTarget();
+        }
+    }
+
+    private void turn_off(int sensor_id){
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("target", "on_off");
+            obj.put("action", "off");
             obj.put("id", sensor_id);
 
             server.sendMessage(obj);

@@ -20,6 +20,7 @@
     <string name="name">Name</string>
     <string name="sensorPort">Port</string>
     <string name="create">Create</string>
+    <string name="update">Update</string>
 
     <string name="trash">Trash</string>
     <string name="empty_name">You must write a name</string>
@@ -27,4 +28,13 @@
     <string name="add_sensor_button">Add sensor button</string>
     <string name="connect_server_button">Connect server button</string>
     <string name="app_disconnected">App is not connected, verify the network</string>
+
+    <!--server errors-->
+    <string name="e1">Not found</string>
+    <string name="e2">Missing parameter</string>
+    <string name="e3">Success</string>
+    <string name="e4">Error</string>
+    <string name="e5">Key error</string>
+    <string name="e6">No option</string>
+    <string name="e7">Port already exist</string>
 </resources>

@@ -13,11 +13,12 @@ def action(message):
             elif d["action"] in "read":
                 return encode(on_off.read())
             elif d["action"] in "update":
-                return encode(on_off.update(int(d["id"])), d["name"], int(d["port"]))
+                return encode(on_off.update(int(d["id"]), d["name"], int(d["port"])))
             elif d["action"] in "delete":
                 return encode(on_off.delete(int(d["id"])))
             elif d["action"] in "on":
-                return encode(on_off.on(int(d["id"]), int(d["port"])))
+                # TODO change second parameter to time
+                return encode(on_off.on(int(d["id"]), int(d["id"])))
             elif d["action"] in "off":
                 return encode(on_off.off(int(d["id"])))
             else:
@@ -38,4 +39,6 @@ def decode(message):
 
 
 def encode(dictionary):
+    # TODO write every action dated in a log, like handshanking message
+    print(dictionary)
     return json.dumps(dictionary)

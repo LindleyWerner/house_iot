@@ -14,7 +14,7 @@ def create(name="Light", port=None):
         except OnOff.DoesNotExist:
             entity = OnOff(name=name, port=port)
             entity.save()
-            return model_to_dict(entity)
+            return read()
         else:
             return {"error": Code.ALREADY_EXIST}
     return {"error": Code.MISSING_PARAMETER}
@@ -29,13 +29,14 @@ def read():
 
 
 def update(id_port=None, name="Light", port=None):
+    # TODO if I update the port to one that already exist, this will update the another entity
     if id_port is not None:
         try:
             entity = OnOff.objects.get(port=id_port)
             entity.name = name
             entity.port = port
             entity.save()
-            return model_to_dict(OnOff.objects.get(port=port))
+            return read()
         except OnOff.DoesNotExist:
             return {"error": Code.NOT_FOUND}
     return {"error": Code.MISSING_PARAMETER}
@@ -61,7 +62,7 @@ def on(id_port=None, timer=0):
             entity.save()
             # TODO Turn on the light
             print("Light " + entity.name + " is on")
-            return model_to_dict(OnOff.objects.get(port=id_port))
+            return read()
         except OnOff.DoesNotExist:
             return {"error": Code.NOT_FOUND}
     return {"error": Code.MISSING_PARAMETER}
@@ -76,7 +77,7 @@ def off(id_port=None):
             entity.save()
             # TODO Turn off the light
             print("Light " + entity.name + " is off")
-            return model_to_dict(OnOff.objects.get(port=id_port))
+            return read()
         except OnOff.DoesNotExist:
             return {"error": Code.NOT_FOUND}
     return {"error": Code.MISSING_PARAMETER}

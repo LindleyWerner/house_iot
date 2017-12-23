@@ -1,8 +1,8 @@
 class Code:
-    NOT_FOUND = 1
-    MISSING_PARAMETER = 2
-    SUCCESS = 3
-    ERROR = 4
-    KEY_ERROR = 5
-    NO_OPTION = 6
-    ALREADY_EXIST = 7
+    NOT_FOUND = "e1"
+    MISSING_PARAMETER = "e2"
+    SUCCESS = "e3"
+    ERROR = "e4"
+    KEY_ERROR = "e5"
+    NO_OPTION = "e6"
+    ALREADY_EXIST = "e7"

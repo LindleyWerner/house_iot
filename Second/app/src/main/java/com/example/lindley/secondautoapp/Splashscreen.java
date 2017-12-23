@@ -107,11 +107,9 @@ public class Splashscreen extends Activity {
                         try {
                             switch (key) {
                                 case "sensors":
-                                    JSONArray array;
+                                    JSONArray array = obj.getJSONArray("sensors");
                                     Intent intent = new Intent(Splashscreen.this,
                                             MainActivity.class);
-
-                                    array = obj.getJSONArray("sensors");
 
                                     //if the server send any sensor, take their information
                                     if (array.length() != 0) {
@@ -122,9 +120,11 @@ public class Splashscreen extends Activity {
                                             String port = obj.getString("pk");
                                             obj = obj.getJSONObject("fields");
                                             String name = obj.getString("name");
+                                            Boolean is_on = obj.getBoolean("is_on");
 
                                             intent.putExtra("name" + Integer.toString(i), name);
                                             intent.putExtra("port" + Integer.toString(i), port);
+                                            intent.putExtra("is_on" + Integer.toString(i), is_on);
                                         }
                                     }
                                     //Call another activity and clear the activity stack
@@ -132,6 +132,12 @@ public class Splashscreen extends Activity {
                                     startActivity(intent);
                                     Splashscreen.this.finish();
 
+                                    break;
+                                case "error":
+                                    String error_obj = obj.getString("error");
+                                    int error_id = getResources().getIdentifier(error_obj,"string",getPackageName());
+                                    String error_message =  getResources().getString(error_id);
+                                    Toast.makeText(getApplicationContext(), error_message, Toast.LENGTH_SHORT).show();
                                     break;
                             }
                         } catch (JSONException e) {
@@ -150,7 +156,6 @@ public class Splashscreen extends Activity {
                     break;
                 case Constants.WEBSOCKET_FAILURE://Failure in websocket connection -> close it
                     //Toast.makeText(getApplicationContext(), msg.obj.toString(), Toast.LENGTH_SHORT).show();
-                    // TODO close connection and open it again (is it ok?)
                     server.closeConnection();
 
                     SocketHandler.setIsConnected(false);
