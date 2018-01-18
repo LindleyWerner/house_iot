@@ -373,6 +373,7 @@ public class MainActivity extends AppCompatActivity
             obj.put("target", "on_off");
             obj.put("action", "on");
             obj.put("id", sensor_id);
+            obj.put("time", 5);
 
             server.sendMessage(obj);
 

@@ -1,0 +1,40 @@
+#Passos para instalar tudo no raspberry
+
+## Instalar git
+sudo apt-get install git
+
+## instalar prerequsitos
+sudo apt-get install libbz2-dev libsqlite3-dev
+
+## baixar e instalar python 3.5
+wget https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tar.xz
+tar -xvf Python-3.5.2.tar.xz daqui
+--> Continuar
+cd Python-3.5.2
+./configure --enable-loadable-sqlite-extensions
+make
+sudo make install
+
+## Virtual env
+python3 -m venv env
+source env/bin/activate
+pip install --upgrade pip
+
+## Instalar requerimentos
+pip install -r requirements.txt
+
+## Instalar gpio
+sudo pip3 install RPi.GPIO
+
+## Precisei instalar a versão >=2.6.0 do redis
+
+wget http://download.redis.io/releases/redis-stable.tar.gz
+tar xzf redis-stable.tar.gz
+cd redis-stable
+make
+sudo make install
+cd utils
+sudo ./install_server.sh
+
+## iniciar redis-server
+sudo service redis_6379 start

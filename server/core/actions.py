@@ -18,7 +18,7 @@ def action(message):
                 return encode(on_off.delete(int(d["id"])))
             elif d["action"] in "on":
                 # TODO change second parameter to time
-                return encode(on_off.on(int(d["id"]), int(d["id"])))
+                return encode(on_off.on(int(d["id"]), int(d["time"])))
             elif d["action"] in "off":
                 return encode(on_off.off(int(d["id"])))
             else:

@@ -1,10 +1,22 @@
 # On/off energy from whatever you want
-from core.codes import Code
-from core.models import OnOff
-from django.forms.models import model_to_dict
+import _thread
+import json
+import time
+
 from django.core import serializers
 
-import json
+from core.codes import Code
+from core.models import OnOff
+
+'''
+import RPi.GPIO as gpio
+
+gpio.setwarnings(False)
+gpio.setmode(gpio.BCM)
+# TODO this setup must be in create
+gpio.setup(23, gpio.OUT)
+gpio.setup(24, gpio.OUT)
+'''
 
 
 def create(name="Light", port=None):
@@ -16,8 +28,8 @@ def create(name="Light", port=None):
             entity.save()
             return read()
         else:
-            return {"error": Code.ALREADY_EXIST}
-    return {"error": Code.MISSING_PARAMETER}
+            return error(Code.ALREADY_EXIST)
+    return error(Code.MISSING_PARAMETER)
 
 
 def read():
@@ -25,21 +37,27 @@ def read():
         data = serializers.serialize('json', OnOff.objects.all())
         return json.loads('{"sensors": ' + data + '}')
     except OnOff.DoesNotExist:
-        return {"error": Code.NOT_FOUND}
+        return error(Code.NOT_FOUND)
 
 
 def update(id_port=None, name="Light", port=None):
-    # TODO if I update the port to one that already exist, this will update the another entity
-    if id_port is not None:
+    if id_port is not None and port is not None:
         try:
-            entity = OnOff.objects.get(port=id_port)
-            entity.name = name
-            entity.port = port
-            entity.save()
-            return read()
+            # Check if already exist an entity in the destiny port
+            OnOff.objects.get(port=port)
+            return error(Code.ALREADY_EXIST)
         except OnOff.DoesNotExist:
-            return {"error": Code.NOT_FOUND}
-    return {"error": Code.MISSING_PARAMETER}
+            try:
+
+                entity = OnOff.objects.get(port=id_port)
+                delete(id_port)
+                entity.name = name
+                entity.port = port
+                entity.save()
+                return read()
+            except OnOff.DoesNotExist:
+                return error(Code.NOT_FOUND)
+    return error(Code.MISSING_PARAMETER)
 
 
 def delete(id_port=None):
@@ -49,8 +67,8 @@ def delete(id_port=None):
             entity.delete()
             return read()
         except OnOff.DoesNotExist:
-            return {"error": Code.NOT_FOUND}
-    return {"error": Code.MISSING_PARAMETER}
+            return error(Code.NOT_FOUND)
+    return error(Code.MISSING_PARAMETER)
 
 
 def on(id_port=None, timer=0):
@@ -61,11 +79,21 @@ def on(id_port=None, timer=0):
             entity.timer = timer
             entity.save()
             # TODO Turn on the light
+            '''
+            try:
+                gpio.output(id_port, gpio.HIGH)
+            except:
+                # Can not turn on the sensor
+                pass
+            '''
             print("Light " + entity.name + " is on")
+            if timer != 0:
+                _thread.start_new_thread(off_timer, (id_port, timer))
+
             return read()
         except OnOff.DoesNotExist:
-            return {"error": Code.NOT_FOUND}
-    return {"error": Code.MISSING_PARAMETER}
+            return error(Code.NOT_FOUND)
+    return error(Code.MISSING_PARAMETER)
 
 
 def off(id_port=None):
@@ -76,8 +104,25 @@ def off(id_port=None):
             entity.timer = 0
             entity.save()
             # TODO Turn off the light
+            '''
+            try:
+                gpio.output(id_port, gpio.LOW)
+            except:
+                # Can not turn off the sensor
+                pass
+            '''
             print("Light " + entity.name + " is off")
             return read()
         except OnOff.DoesNotExist:
-            return {"error": Code.NOT_FOUND}
-    return {"error": Code.MISSING_PARAMETER}
+            return error(Code.NOT_FOUND)
+    return error(Code.MISSING_PARAMETER)
+
+
+def error(code):
+    return {"error": code}
+
+
+def off_timer(id_port, timer):
+    time.sleep(timer)
+    # off(id_port)
+    # TODO Must return that the light is off
